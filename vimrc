@@ -1,0 +1,172 @@
+" {{{ Plugins
+
+" https://github.com/junegunn/vim-plug/wiki/tips#automatic-installation
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+	silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+	autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+"let g:chezmoi#use_tmp_buffer=1
+
+call plug#begin('~/.vim/plugged')
+	Plug 'vim-airline/vim-airline'
+	Plug 'vim-airline/vim-airline-themes'
+	Plug 'sainnhe/everforest'
+call plug#end()
+
+" }}}
+" {{{ Various settings
+
+syntax on
+
+" These lines copy default config of Debian and Gentoo,
+" but let's keep these just for the case
+set nocompatible
+set nomodeline
+set history=50
+set ruler
+
+set viminfo='50,f1,<500,n~/.vim/.viminfo
+
+" Set cwd to the directory where the edited file is
+set autochdir
+
+" Search options
+set nohlsearch
+set ignorecase smartcase
+set incsearch
+
+" Current cursor line highlighting
+set number
+set cursorline
+set cursorlineopt=number
+set cursorcolumn
+highlight Visual cterm=none ctermfg=black ctermbg=grey
+
+" Tabulation options
+set tabstop=4
+set shiftwidth=4
+set noexpandtab
+"set smarttab
+
+" Indent options
+set autoindent
+"set smartindent
+
+" Varia
+set foldmethod=marker
+set mouse=a
+
+" }}}
+" {{{ Autocmd rules
+
+augroup custom_indentation
+	autocmd!
+	autocmd FileType xml setlocal ts=2 sw=2
+augroup END
+
+" Some chezmoi-related stuff. Automatic assigning filetypes to templates
+
+" Filetypes
+augroup my_filetypes
+	autocmd!
+	autocmd BufRead,BufNewFile *.conf.tmpl setlocal filetype=conf
+	autocmd BufRead,BufNewFile *.css.tmpl setlocal filetype=css
+	autocmd BufRead,BufNewFile *.desktop.tmpl setlocal filetype=desktop
+	autocmd BufRead,BufNewFile *.ini.tmpl setlocal filetype=dosini
+	autocmd BufRead,BufNewFile *.jsonc.tmpl setlocal filetype=jsonc
+	autocmd BufRead,BufNewFile *.lua.tmpl setlocal filetype=lua
+	autocmd BufRead,BufNewFile *.pl.tmpl setlocal filetype=perl
+	autocmd BufRead,BufNewFile *.py.tmpl setlocal filetype=python
+	autocmd BufRead,BufNewFile *.sh.tmpl setlocal filetype=sh
+	autocmd BufRead,BufNewFile *.svg.tmpl setlocal filetype=svg
+	autocmd BufRead,BufNewFile *.toml.tmpl setlocal filetype=toml
+	autocmd BufRead,BufNewFile *.xml.tmpl setlocal filetype=xml
+	autocmd BufRead,BufNewFile *.y{,a}ml.{tmpl,age,enc} setlocal filetype=yaml
+augroup END
+
+" Certain config files
+augroup certain_config_files
+	autocmd!
+	autocmd BufRead,BufNewFile */*fontconfig/*_fonts.conf.tmpl setlocal filetype=xml
+	autocmd BufRead,BufNewFile */*gtkrc*.tmpl,*gtk-3.0/*settings.ini.tmpl setlocal filetype=dosini
+	autocmd BufRead,BufNewFile *_Xresources.tmpl setlocal filetype=xdefaults
+	autocmd BufRead,BufNewFile *_bash_logout.tmpl,*_bashrc.tmpl,*_bash_profile.tmpl setlocal filetype=bash
+	autocmd BufRead,BufNewFile *_tmux.conf{,.tmpl} setlocal filetype=tmux
+	autocmd BufRead,BufNewFile *conky.conf{,.tmpl} setlocal filetype=lua
+	autocmd BufRead,BufNewFile *dunstrc{,.tmpl} setlocal filetype=cfg
+	autocmd BufRead,BufNewFile *gvimrc* setlocal filetype=vim
+	autocmd BufRead,BufNewFile *mc/*menu{,.tmpl} setlocal filetype=conf
+	autocmd BufRead,BufNewFile *openbox/*autostart* setlocal filetype=sh
+	autocmd BufRead,BufNewFile *sway/*config{,.tmpl} setlocal filetype=swayconfig
+	autocmd BufRead,BufNewFile *swaylock/*config{,.tmpl} setlocal filetype=cfg
+	autocmd BufRead,BufNewFile *tint2rc.*,*xsettingsd.tmpl,*xsettingsd.conf* setlocal filetype=conf
+	autocmd BufRead,BufNewFile .ansible-lint,*dot_ansible-lint setlocal filetype=yaml
+	autocmd BufRead,BufNewFile .chezmoi{ignore,remove}{,.tmpl} setlocal filetype=cfg
+	autocmd BufRead,BufNewFile .profile,*dot_profile* setlocal filetype=sh
+	autocmd BufRead,BufNewFile ansible.cfg{,.tmpl} setlocal filetype=dosini
+	autocmd BufRead,BufNewFile ~/.config/conky/*.conf setlocal filetype=lua
+augroup END
+
+" Imported from defaults.vim
+" Put these in an autocmd group, so that you can revert them with:
+" #":augroup vimStartup | exe 'au!' | augroup END"
+augroup vimStartup
+	au!
+
+	" When editing a file, always jump to the last known cursor position.
+	" Don't do it when the position is invalid, when inside an event handler
+	" (happens when dropping a file on gvim) and for a commit message (it's
+	" likely a different one than last time).
+	autocmd BufReadPost *
+		\ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+		\ |   exe "normal! g`\""
+		\ | endif
+augroup END
+
+"augroup vimrc_see
+"	 au!
+"	 au Syntax * syn match MySee /\v<See:/
+"		   \ containedin=.*Comment,vimCommentTitle
+"augroup END
+"hi def link MySee vimCommentTitle
+
+" }}}
+" {{{ Theme
+
+" Everforest default setup
+let g:everforest_background = 'hard'
+
+set background=dark
+
+" Airline customization
+" Don't print warning about mixed whitespaces in airline
+let g:airline#extensions#whitespace#enabled = 0
+
+" You might have to force true color when using regular vim inside tmux as the
+" colorscheme can appear to be grayscale with 'termguicolors' option enabled.
+if !has('gui_running') && &term =~ '^\%(screen\|tmux\)'
+	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+
+if ($TERM != 'linux' || has("gui_running"))
+
+	if (has("termguicolors"))
+		set termguicolors
+	endif
+
+	try
+		colorscheme everforest
+		let g:airline_theme = 'everforest'
+	catch /^Vim(colorscheme):E185:/
+		colorscheme industry
+	endtry
+
+else
+	colorscheme industry
+	let g:airline_theme = 'term'
+endif
+
+" }}}
